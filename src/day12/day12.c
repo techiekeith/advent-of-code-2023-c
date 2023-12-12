@@ -17,17 +17,17 @@ static char *current_pattern;
 
 static char *buffer;
 
-static struct value get_cached_result(size_t idx, size_t max, size_t offset) {
+static inline struct value get_cached_result(size_t idx, size_t max, size_t offset) {
     size_t key = idx << 16 | max << 8 | offset; // very crude but it'll do!
     return get_value(cached_results, key);
 }
 
-static void set_cached_result(size_t idx, size_t max, size_t offset, unsigned long long result) {
+static inline void set_cached_result(size_t idx, size_t max, size_t offset, unsigned long long result) {
     size_t key = idx << 16 | max << 8 | offset; // very crude but it'll do!
     set_int_value(cached_results, key, result);
 }
 
-static bool may_contain(const char *pattern, const char *substring, size_t offset) {
+static inline bool may_contain(const char *pattern, const char *substring, size_t offset) {
     for (int i = 0; substring[i] != '\0'; i++) {
         if (pattern[offset + i] != substring[i] && pattern[offset + i] != '?') {
             return false;
@@ -144,7 +144,7 @@ static unsigned long long get_matching_permutations(char *chars, char *numbers) 
     }
     size_t diff = strlen(current_pattern) - min_length;
 
-    cached_results = new_array();
+    cached_results = new_array_with_capacity(65536 * current_array_of_numbers->num_elements);
     if (cached_results == NULL) {
         perror("get_matching_permutations::new_array (cached_results)");
         return 0;
@@ -166,7 +166,7 @@ static unsigned long long get_matching_permutations(char *chars, char *numbers) 
     return result;
 }
 
-static unsigned long long get_matching_permutations_part_one(char *line, size_t idx) {
+static unsigned long long get_matching_permutations_part_one(char *line) {
     unsigned long long result = 0;
     char *split = strchr(line, ' ');
     if (split != NULL) {
@@ -193,9 +193,8 @@ static char *repeat_string_with_separator(char *source, int repeat, char separat
     return new_string;
 }
 
-static unsigned long long get_matching_permutations_part_two(char *line, size_t idx) {
+static unsigned long long get_matching_permutations_part_two(char *line) {
     unsigned long long result = 0;
-    printf("Index: %zu\n", idx);
     char *split = strchr(line, ' ');
     if (split != NULL) {
         *split++ = '\0';
@@ -208,11 +207,10 @@ static unsigned long long get_matching_permutations_part_two(char *line, size_t 
     return result;
 }
 
-static unsigned long long sum_up(struct list *lines, unsigned long long function(char *, size_t)) {
+static unsigned long long sum_up(struct list *lines, unsigned long long function(char *)) {
     unsigned long long sum = 0;
-    size_t idx = 0;
     for (struct list_item *item = lines->head; item != NULL; item = item->next) {
-        sum += function(item->str_value, idx++);
+        sum += function(item->str_value);
     }
     return sum;
 }
