@@ -14,12 +14,12 @@ struct list *load_file(char *filename) {
     char buffer[BUFFER_SIZE];
     FILE *handle = fopen(filename, "r");
     if (handle == NULL) {
-        perror("get_file::fopen");
+        perror("load_file::fopen");
         exit(1);
     }
     struct list *lines = new_list();
     if (lines == NULL) {
-        perror("get_file::malloc (lines)");
+        perror("load_file::new_list");
         exit(1);
     }
     char *result = fgets(buffer, BUFFER_SIZE, handle);
